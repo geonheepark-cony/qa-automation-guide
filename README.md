@@ -16,6 +16,7 @@ qa-automation-guide/
 │   └── e2e-test-writer.md              # Playwright 코드 생성 서브에이전트
 ├── workflows/
 │   ├── e2e-generate.yml                # CI: E2E 스크립트 자동 생성 (머지 시)
+│   ├── e2e-run-report.yml              # CI: E2E 실행 + PR 코멘트 + Slack 알림 (PR 시)
 │   └── test-scenario-generate.yml      # CI: QA 시나리오 문서 자동 생성 (머지 시)
 └── examples/
     └── base.ts                         # Playwright 커스텀 fixture 예시
@@ -88,13 +89,16 @@ npm run test:e2e
     ↓
 PR 머지 → main / project/* 브랜치
     ↓
-CI 자동 트리거 (2개 워크플로 병렬)
+CI 자동 트리거 (머지 시 — 2개 워크플로 병렬)
     ├── test-scenario-generate.yml → QA 시나리오 문서 생성 + 커밋
     └── e2e-generate.yml → Playwright 스크립트 생성 + 커밋
     ↓
+PR 단계 (코드 변경 시):
+    └── e2e-run-report.yml → E2E 실행 + PR 코멘트 + Slack 알림
+    ↓
 QA 단계:
     ├── QA 팀: 시나리오 문서 기반 수동 테스트
-    └── 개발자: npm run test:e2e 로 자동 테스트
+    └── 개발자: Slack 리포트 확인 + npm run test:e2e
 ```
 
 ### 로컬에서 직접 실행
