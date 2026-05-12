@@ -1,0 +1,64 @@
+#!/bin/sh
+
+# 스펙 문서에 @e2e auto 태그가 있으면 대응하는 E2E 파일이 존재하는지 검증
+# 없으면 push를 차단하고 /generate-e2e 실행을 안내
+
+SPEC_DIRS="documents/specs docs/specs"
+MISSING=()
+
+for dir in $SPEC_DIRS; do
+  [ -d "$dir" ] || continue
+
+  # @e2e auto 태그가 있는 스펙 파일 찾기
+  for spec in $(grep -rl "@e2e auto" "$dir" --include="*.md" 2>/dev/null); do
+    # 스펙 경로에서 E2E 파일명 추론
+    # documents/specs/1p-pr/purchase-request-register/SPEC-sku-search-add.md
+    # → e2e/purchase-request-register-sku-search-add.spec.ts
+    filename=$(basename "$spec" .md)
+    parent=$(basename "$(dirname "$spec")")
+
+    # SPEC- 접두사 제거
+    filename=$(echo "$filename" | sed 's/^SPEC-//' | sed 's/^SPEC//')
+
+    # 파일명이 비어있으면 (SPEC.md 같은 경우) 부모 디렉토리명 사용
+    if [ -z "$filename" ] || [ "$filename" = ".md" ]; then
+      e2e_name="$parent"
+    else
+      e2e_name="${parent}-${filename}"
+    fi
+
+    # 루트 레벨 스펙 (부모가 specs 디렉토리 자체인 경우)
+    if [ "$parent" = "specs" ] || [ "$parent" = "1p-pr" ]; then
+      e2e_name=$(echo "$filename" | sed 's/^SCM-PR-//')
+    fi
+
+    # e2e 디렉토리에서 매칭되는 파일 찾기
+    found=false
+    for e2e_file in e2e/*"${e2e_name}"*.spec.ts; do
+      if [ -f "$e2e_file" ]; then
+        found=true
+        break
+      fi
+    done
+
+    if [ "$found" = false ]; then
+      MISSING+=("$spec → e2e/*${e2e_name}*.spec.ts")
+    fi
+  done
+done
+
+if [ ${#MISSING[@]} -gt 0 ]; then
+  echo ""
+  echo "❌ E2E 테스트 파일이 누락되었습니다!"
+  echo ""
+  echo "다음 스펙에 @e2e auto 태그가 있지만 대응하는 E2E 파일이 없습니다:"
+  echo ""
+  for item in "${MISSING[@]}"; do
+    echo "  • $item"
+  done
+  echo ""
+  echo "먼저 E2E 테스트를 생성해주세요:"
+  echo "  /generate-e2e <스펙 파일 경로>"
+  echo ""
+  exit 1
+fi

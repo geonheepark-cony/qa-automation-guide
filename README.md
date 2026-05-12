@@ -19,7 +19,8 @@ qa-automation-guide/
 │   ├── e2e-run-report.yml              # CI: E2E 실행 + PR 코멘트 + Slack 알림 (PR 시)
 │   └── test-scenario-generate.yml      # CI: QA 시나리오 문서 자동 생성 (머지 시)
 └── examples/
-    └── base.ts                         # Playwright 커스텀 fixture 예시
+    ├── base.ts                         # Playwright 커스텀 fixture 예시
+    └── pre-push                        # Husky pre-push hook (E2E 파일 누락 시 push 차단)
 ```
 
 ## 설치
@@ -38,6 +39,11 @@ cp agents/e2e-test-writer.md .claude/agents/
 # (선택) CI 워크플로 복사
 cp workflows/e2e-generate.yml .github/workflows/
 cp workflows/test-scenario-generate.yml .github/workflows/
+cp workflows/e2e-run-report.yml .github/workflows/
+
+# (선택) Husky pre-push hook — E2E 파일 없으면 push 차단
+cp examples/pre-push .husky/pre-push
+chmod +x .husky/pre-push
 ```
 
 ## 사용법
