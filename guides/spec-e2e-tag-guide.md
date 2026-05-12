@@ -270,9 +270,54 @@ Playwright: `await expect(page).toHaveURL(/\/inbound\/purchase-request\/register
 
 ---
 
-## 9. 자동 생성 실행
+## 9. 시나리오 통합 규칙
 
-### 로컬 (Claude Code CLI)
+스펙 디렉토리 구조에 따라 테스트 시나리오가 통합됩니다:
+
+| 입력 | 규칙 | 출력 |
+|------|------|------|
+| 루트 스펙 파일 (`1p-pr/SPEC-*.md`) | 단독 시나리오 1개 | `test-scenarios/purchase-request-list.md` |
+| 하위 디렉토리 (`1p-pr/feature-name/`) | **디렉토리 내 모든 스펙 → 1개 통합 시나리오** | `test-scenarios/purchase-request-register.md` |
+
+### 예시
+
+```
+documents/specs/1p-pr/
+├── SPEC-SCM-PR-purchase-request-list.md          → 단독 시나리오
+├── purchase-request-register/                     → 통합 시나리오
+│   ├── SPEC-sku-search-add.md                       ├─ 섹션 1: SKU 검색 추가
+│   └── SPEC-product-list-table.md                   └─ 섹션 2: 상품 목록 테이블
+```
+
+### 통합 시 TC 배치 순서
+
+1. 페이지 진입 / 렌더링 확인
+2. 입력 / 조작 (정상 케이스)
+3. 결과 확인
+4. 에러 / 예외 케이스
+5. 수동 QA 대상 (`@e2e manual`)
+
+### 스펙 파일에서 통합을 고려할 때
+
+- **같은 디렉토리**에 있는 스펙은 하나의 사용자 플로우로 묶입니다
+- TC ID 접두사를 스펙별로 다르게 유지하세요 (예: `TC-SKU-001`, `TC-PLT-001`)
+- 테스트 데이터가 스펙 간에 공유되면 각 스펙에 동일하게 정의하세요
+
+---
+
+## 10. 자동 생성 실행
+
+### QA 테스트 시나리오 문서 생성
+
+```bash
+# 단일 스펙
+/generate-test-scenario documents/specs/1p-pr/SPEC-SCM-PR-purchase-request-list.md
+
+# 디렉토리 (통합 시나리오)
+/generate-test-scenario documents/specs/1p-pr/purchase-request-register/
+```
+
+### E2E 스크립트 생성
 
 ```bash
 /generate-e2e documents/specs/1p-pr/purchase-request-register/SPEC-sku-search-add.md
@@ -280,7 +325,12 @@ Playwright: `await expect(page).toHaveURL(/\/inbound\/purchase-request\/register
 
 ### CI (GitHub Actions)
 
-스펙 파일이 `main` 또는 `project/*` 브랜치에 머지되면 자동으로 E2E 파일이 생성되어 커밋됩니다.
+스펙 파일이 `main` 또는 `project/*` 브랜치에 머지되면:
+- **QA 시나리오 문서** 자동 생성 + 커밋 (`test-scenario-generate.yml`)
+- **E2E 스크립트** 자동 생성 + 커밋 (`e2e-generate.yml`)
+
+PR에서 코드 변경 시:
+- **E2E 테스트 실행** + PR 코멘트 + Slack 알림 (`e2e-run-report.yml`)
 
 ### 생성된 파일 테스트
 
