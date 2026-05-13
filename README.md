@@ -10,7 +10,8 @@ qa-automation-guide/
 │   └── spec-e2e-tag-guide.md           # 태그 작성 표준 가이드
 ├── commands/
 │   ├── generate-e2e.md                 # /generate-e2e — E2E 스크립트 생성
-│   └── generate-test-scenario.md       # /generate-test-scenario — QA 시나리오 문서 생성
+│   ├── generate-test-scenario.md       # /generate-test-scenario — QA 시나리오 문서 생성
+│   └── evaluate-e2e.md                 # /evaluate-e2e — E2E 스크립트 품질 평가
 ├── agents/
 │   ├── spec-parser.md                  # Spec 파싱 서브에이전트
 │   └── e2e-test-writer.md              # Playwright 코드 생성 서브에이전트
